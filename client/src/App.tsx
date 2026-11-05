@@ -169,17 +169,24 @@ function EndedScreen({
   const myRole = (gameState as any)?.myRole
   const roleWinner = myRole !== undefined ? (gameState as any)?.winner : undefined
   const hasWinner = winnerId != null || roleWinner != null
-  const isWinner = roleWinner !== undefined
+  // On a team-game forfeit the room emits a player ID, while the normal
+  // round result is a team role. Resolve the forfeit's team from seat parity.
+  const guandanSeats = (gameState as any)?.playerIds
+  const winningSeat = winnerId && Array.isArray(guandanSeats) ? guandanSeats.indexOf(winnerId) : -1
+  const forfeitTeam = (myRole === 'teamA' || myRole === 'teamB') && winningSeat >= 0
+    ? (winningSeat % 2 === 0 ? 'teamA' : 'teamB') : null
+  const isWinner = roleWinner != null
     ? roleWinner === myRole
-    : winnerId === playerId
+    : forfeitTeam != null ? forfeitTeam === myRole : winnerId === playerId
   const { setBgmScene } = useAudio()
   useEffect(() => {
     setBgmScene(null)  // 游戏结束，停止 BGM
   }, [setBgmScene])
 
   const detail = roleWinner != null
-    ? `${roleWinner === 'landlord' ? '地主' : '农民'}获胜牌局`
-    : null
+    ? (roleWinner === 'landlord' ? '地主获胜牌局'
+      : roleWinner === 'farmer' ? '农民获胜牌局' : '掼蛋队伍获胜')
+    : forfeitTeam != null ? '掼蛋队伍获胜' : null
 
   const handlePlayAgain = () => {
     setWaiting(true)
