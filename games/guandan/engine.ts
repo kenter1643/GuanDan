@@ -121,7 +121,9 @@ export function clientView(state: GuandanRound, playerId: string) {
     currentTurn: state.currentTurn,
     lastPlay: state.lastPlay,
     finishOrder: state.finishOrder,
-    winner: state.winner,
+    // EndedScreen compares team-based roles when both fields exist.
+    myRole: seat % 2 === 0 ? 'teamA' : 'teamB',
+    winner: state.winner == null ? null : state.players.findIndex(p => p.id === state.winner) % 2 === 0 ? 'teamA' : 'teamB',
     version: state.version,
   }
 }
