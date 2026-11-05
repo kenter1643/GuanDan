@@ -8,6 +8,8 @@ export type Phase = 'playing' | 'ended'
 export interface GuandanPlayer { id: string; hand: Card[]; finishPlace: number | null }
 export interface PublicPlay { seat: Seat; cards: Card[]; pattern: Pattern }
 export interface GuandanRound {
+  // Tongzhuo GameState requires a string index signature.
+  [key: string]: any
   players: GuandanPlayer[]
   config: RuleConfig
   phase: Phase
@@ -59,6 +61,7 @@ export function newSimpleRound(playerIds: string[], random: () => number): Guand
 /** Pure transition function. Never mutates input on rejected/accepted actions. */
 export function applyAction(state: GuandanRound, playerId: string, action: GameAction): ActionResult {
   if (state.phase !== 'playing' || state.config.mode !== 'simple') return { state, error: '游戏模式或阶段不支持此操作' }
+  if (!action || (action.type !== 'play' && action.type !== 'pass')) return { state, error: '未知操作' }
   const seat = state.players.findIndex(p => p.id === playerId)
   if (seat < 0 || seat !== state.currentTurn) return { state, error: '不是你的回合' }
   const activeSeat = seat as Seat
@@ -67,7 +70,7 @@ export function applyAction(state: GuandanRound, playerId: string, action: GameA
   if (action.type === 'pass' && !state.lastPlay) return { state, error: '领出者不得过牌' }
   if (action.type === 'play') {
     const ids = action.cardIds
-    if (!Array.isArray(ids) || !ids.length || ids.some(id => typeof id !== 'string') || new Set(ids).size !== ids.length) {
+    if (!Array.isArray(ids) || !ids.length || ids.length > 27 || ids.some(id => typeof id !== 'string') || new Set(ids).size !== ids.length) {
       return { state, error: '非法牌ID' }
     }
     const mine = new Map(player.hand.map(card => [card.id, card]))
