@@ -14,7 +14,8 @@
     "zustand": "^5.0.0",
     "@tongzhuo/core-shared": "*",
     "@tongzhuo/core-client": "*",
-    "huiming": "*"
+    "huiming": "*",
+    "guandan": "*"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
