@@ -3,12 +3,13 @@ import { startServer } from '@tongzhuo/core-server'
 import { huimingServerPlugin } from 'huiming/plugin'
 import { landlordServerPlugin } from 'landlord/plugin'
 import { nimmtServerPlugin } from 'nimmt/plugin'
+import { guandanSimpleServerPlugin } from 'guandan/plugin'
 
 const PORT = Number(process.env.PORT) || 3000
 
 startServer({
   port: PORT,
-  plugins: [huimingServerPlugin, landlordServerPlugin, nimmtServerPlugin],
+  plugins: [huimingServerPlugin, landlordServerPlugin, nimmtServerPlugin, guandanSimpleServerPlugin],
   staticPath: path.join(__dirname, '../public'),
 }).then(() => {
   console.log('Server started successfully')
