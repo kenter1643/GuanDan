@@ -31,6 +31,18 @@ describe('guandan stage 1: plain cards', () => {
     expect(classifyPlain([c(10), c(11, 'hearts'), c(12), c(13), c(14)], simpleConfig())?.name).toBe('straight')
     expect(classifyPlain([c(11), c(12, 'hearts'), c(13), c(14), c(2)], simpleConfig())).toBeNull()
   })
+  it('allows natural 23456 and low-ace A2345 straights', () => {
+    expect(classifyPlain([c(2), c(3, 'hearts'), c(4), c(5), c(6)], simpleConfig())?.name).toBe('straight')
+    const lowAce = classifyPlain([c(14), c(2, 'hearts'), c(3), c(4), c(5)], simpleConfig())
+    expect(lowAce?.name).toBe('straight')
+    expect(lowAce?.primary).toBe(5)
+    expect(classifyPlain([c(14), c(2, 'hearts'), c(3), c(4), c(6)], simpleConfig())).toBeNull()
+  })
+  it('recognizes low-ace straight flush without allowing invalid wraps', () => {
+    const p = classifyPlain([c(14), c(2), c(3), c(4), c(5)], simpleConfig())
+    expect(p?.name).toBe('straight_flush')
+    expect(p?.primary).toBe(5)
+  })
   it('four jokers outranks any bomb', () => {
     const jokers = makeDeck().filter(x => x.suit === 'joker')
     const four = classifyPlain(jokers, classicConfig())!
