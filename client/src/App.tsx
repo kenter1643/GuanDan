@@ -43,6 +43,9 @@ registerClientPluginLoader('landlord', () =>
 registerClientPluginLoader('nimmt', () =>
   import('nimmt/ui/client-plugin').then(m => m.nimmtClientPlugin)
 )
+registerClientPluginLoader('guandan-simple', () =>
+  import('guandan/ui/client-plugin').then(m => m.guandanSimpleClientPlugin)
+)
 
 /** 从 localStorage 获取 playerId（不存在则生成） */
 function getStoredPlayerId(): string {

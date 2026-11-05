@@ -10,7 +10,8 @@
     "@tongzhuo/core-server": "*",
     "huiming": "*",
     "express": "^4.21.0",
-    "socket.io": "^4.8.0"
+    "socket.io": "^4.8.0",
+    "guandan": "*"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
