@@ -178,6 +178,13 @@ export interface GameServerPlugin<
    * 调用处：socket-framework.ts → game:action 处理完毕后调用，若返回非 null 则触发 game:over
    */
   checkGameEnd(state: TState): string | null
+
+  /**
+   * Optional hook for team-based games. Returns a representative player ID
+   * from the winning side after a player forfeits on disconnect timeout.
+   * Existing plugins retain their legacy default behavior.
+   */
+  resolveForfeitWinner?(state: TState, forfeitingPlayerId: string): string | null
 }
 
 /**
