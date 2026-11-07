@@ -23,7 +23,16 @@ export function WalletConnect({ serverUrl, serverPassword, onLogin }: Props) {
   const [available, setAvailable] = useState<WalletChoice[]>([])
   const [pending, setPending] = useState<WalletBrand | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loginReady, setLoginReady] = useState(false)
   useEffect(() => subscribeWallets(setAvailable), [])
+  useEffect(() => {
+    let alive = true
+    fetch(`${serverUrl.replace(/\/$/, '')}/api/server/info`)
+      .then(r => r.ok ? r.json() : null)
+      .then(info => { if (alive) setLoginReady(info?.walletLoginAvailable === true) })
+      .catch(() => { if (alive) setLoginReady(false) })
+    return () => { alive = false }
+  }, [serverUrl])
 
   async function post(url: string, data: unknown) {
     const result = await fetch(`${serverUrl.replace(/\/$/, '')}/api/auth/wallet/${url}`, {
@@ -36,6 +45,7 @@ export function WalletConnect({ serverUrl, serverPassword, onLogin }: Props) {
   }
 
   async function login(brand: WalletBrand) {
+    if (!loginReady) { setError('钱包登录服务尚未启用（缺少服务器签名验签模块）。'); return }
     const choice = available.find(x => x.brand === brand)
     if (!choice) {
       setError('未检测到该钱包。请安装扩展，或使用钱包 App 的 DApp 浏览器打开页面。')
@@ -70,9 +80,10 @@ export function WalletConnect({ serverUrl, serverPassword, onLogin }: Props) {
   return <section className="wallet-connect" aria-label="钱包注册与登录">
     <h3>钱包登录 Tape Games</h3>
     <p>第一次签名即注册，以后使用同一个钱包签名登录；无需支付 Gas，也不需要 X 账号。</p>
+    {!loginReady && <p className="wallet-connect-error">当前服务器的钱包登录尚未启用；可以继续用原账号密码登录。</p>}
     <div className="wallet-connect-options">
       {brands.map(brand => (
-        <button type="button" key={brand} disabled={pending !== null} onClick={() => void login(brand)}>
+        <button type="button" key={brand} disabled={pending !== null || !loginReady} onClick={() => void login(brand)}>
           {pending === brand ? '等待签名确认…' : walletLabels[brand]}
           <small>{available.some(w => w.brand === brand) ? '可连接' : '未检测到'}</small>
         </button>
