@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { WalletConnect } from '../wallet/WalletConnect'
 
 interface AuthScreenProps {
   serverUrl: string
@@ -167,6 +168,8 @@ export function AuthScreen({ serverUrl, onAuthSuccess, onBack }: AuthScreenProps
             {loading ? '处理中...' : (mode === 'login' ? '登录' : '注册')}
           </button>
         </form>
+
+        <WalletConnect />
 
         <div className="auth-footer">
           <button
