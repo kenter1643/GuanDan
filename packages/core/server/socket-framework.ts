@@ -651,10 +651,14 @@ export function setupSocketFramework(
           const currentRoom = roomManager.findRoomByPlayer(playerId)
           if (currentRoom && currentRoom.phase === 'paused') {
             currentRoom.phase = 'ended'
+            // Team games may return one stable winning-side representative.
+            // Older plugins preserve their existing per-recipient behavior.
+            const forfeitPlugin = pluginLoader.getPlugin(currentRoom.gameId)
+            const teamWinnerId = forfeitPlugin?.resolveForfeitWinner?.(currentRoom.state, playerId)
             for (const other of otherPlayers) {
               const otherSocketId = roomManager.getSocketId(other.id)
               if (otherSocketId) {
-                io.to(otherSocketId).emit('game:forfeited', { winnerId: other.id })
+                io.to(otherSocketId).emit('game:forfeited', { winnerId: teamWinnerId || other.id })
               }
             }
             broadcastRoomList(io, roomManager)

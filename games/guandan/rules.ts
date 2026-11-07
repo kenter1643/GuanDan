@@ -9,8 +9,10 @@ function sequence(ranks: number[], each: number, length: number): number | null 
   for (const r of ranks) freq.set(r, (freq.get(r) ?? 0) + 1)
   const distinct = [...freq.keys()].sort((a, b) => a - b)
   if (distinct.length !== length || distinct.some(r => freq.get(r) !== each)) return null
+  // For five-card straights A may be low (A2345) or high (10JQKA).
+  // All other groups use the natural 2..A rank order; jokers never sequence.
+  if (distinct.some(r => r < 2 || r > 14)) return null
   if (each === 1 && length === 5 && distinct.join(',') === '2,3,4,5,14') return 5
-  if (distinct.some(r => r === 2 || r > 14)) return null
   if (distinct[distinct.length - 1] - distinct[0] !== length - 1) return null
   return distinct[distinct.length - 1]
 }

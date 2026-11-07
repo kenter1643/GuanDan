@@ -35,6 +35,17 @@ describe('guandan Simple GameServerPlugin', () => {
       }
     }
   })
+  it('chooses an opponent-team player when any seat forfeits', () => {
+    const state = simple()
+    for (let seat = 0; seat < 4; seat++) {
+      const winnerId = guandanSimpleServerPlugin.resolveForfeitWinner?.(state, ids[seat])
+      expect(winnerId).toBe(ids[(seat + 1) % 4])
+      const winnerSeat = ids.indexOf(winnerId!)
+      expect(winnerSeat % 2).not.toBe(seat % 2)
+    }
+    expect(guandanSimpleServerPlugin.resolveForfeitWinner?.(state, 'not-a-player')).toBeNull()
+  })
+
   it('matches team win display to all four client viewpoints', () => {
     const state = simple()
     const deck = makeDeck()

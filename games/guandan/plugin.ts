@@ -28,4 +28,10 @@ export const guandanSimpleServerPlugin: GameServerPlugin<GuandanRound> = {
   },
   getClientState: clientView,
   checkGameEnd(state) { return state.winner },
+  resolveForfeitWinner(state, forfeitingPlayerId) {
+    const loserSeat = state.players.findIndex(p => p.id === forfeitingPlayerId)
+    if (loserSeat < 0 || state.players.length !== 4) return null
+    // Seats 0/2 and 1/3 are partners. The clockwise neighbor is the opposing team.
+    return state.players[(loserSeat + 1) % 4].id
+  },
 }
