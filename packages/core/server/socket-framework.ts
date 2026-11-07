@@ -173,10 +173,14 @@ export function setupSocketFramework(
         return
       }
 
-      logger.info('player.hello', { playerId: effectivePlayerId, socketId: socket.id, name, authenticated: !!authenticatedUsername })
+      // Authenticated profiles are authoritative for visible nicknames.
+      const userProfile = authenticatedUsername && userStore
+        ? userStore.getUser(authenticatedUsername) ?? null : null
+      const displayName = userProfile?.displayName || name
+      logger.info('player.hello', { playerId: effectivePlayerId, socketId: socket.id, authenticated: !!authenticatedUsername })
 
-      // Store player name
-      roomManager.setPlayerName(effectivePlayerId, name)
+      // Update in-room nickname as well as the name index.
+      roomManager.setPlayerName(effectivePlayerId, displayName)
 
       // Update socket mapping
       roomManager.updateSocket(effectivePlayerId, socket.id)
@@ -186,12 +190,6 @@ export function setupSocketFramework(
       if (existingTimer) {
         clearTimeout(existingTimer)
         disconnectTimers.delete(effectivePlayerId)
-      }
-
-      // Get user profile data if authenticated
-      let userProfile = null
-      if (authenticatedUsername && userStore) {
-        userProfile = userStore.getUser(authenticatedUsername)
       }
 
       // Send welcome with game list
