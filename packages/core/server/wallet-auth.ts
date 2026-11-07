@@ -112,8 +112,8 @@ Expiration Time: ${expires.toISOString()}`
         .get(entry.address) as { user_id: number } | undefined
       let user: UserRecord | undefined = row ? this.users.getUserById(row.user_id) : undefined
       if (!user) {
-        const username = `w_${crypto.randomBytes(10).toString('hex')}`
-        const password = crypto.randomBytes(48).toString('hex')
+        const username = `w_${crypto.randomBytes(8).toString('hex')}`
+        const password = crypto.randomBytes(32).toString('hex')
         const name = `玩家${entry.address.slice(2, 8)}`
         const result = this.users.createUser(username, password, name)
         if (!result.success || !result.user) throw new Error('REGISTER_FAILED')
