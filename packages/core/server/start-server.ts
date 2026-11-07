@@ -8,7 +8,7 @@ import { PluginLoader } from './plugin-loader'
 import { setupSocketFramework } from './socket-framework'
 import { getDb } from './db'
 import { UserStore } from './user-store'
-import { WalletAuth } from './wallet-auth'
+import { WalletAuth, walletVerifierAvailable } from './wallet-auth'
 import { ServerConfig } from './server-config'
 import { AuthErrors, AuthValidation } from '@tongzhuo/core-shared'
 import type { GameServerPlugin } from '@tongzhuo/core-shared'
@@ -92,6 +92,7 @@ export async function startServer(options: ServerOptions = {}): Promise<ServerHa
   apiRouter.get('/server/info', (_req, res) => {
     res.json({
       requirePassword: serverConfig.requirePassword(),
+      walletLoginAvailable: walletVerifierAvailable(),
     })
   })
 
