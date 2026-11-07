@@ -3,57 +3,82 @@ import { connectInjectedWallet, subscribeWallets, walletLabels } from './provide
 import type { WalletBrand, WalletChoice } from './providers'
 import './wallet.css'
 
-const brands: WalletBrand[] = ['binance', 'okx', 'tokenpocket']
-export function WalletConnect() {
+type WalletLoginUser = { id: number; username: string; displayName: string; avatarId: number; coins: number }
+type Props = {
+  serverUrl: string
+  serverPassword?: string
+  onLogin: (token: string, username: string, user: WalletLoginUser) => void
+}
+const brands: WalletBrand[] = ['binance','okx','tokenpocket']
+const messages: Record<string,string> = {
+  WALLET_VERIFIER_UNAVAILABLE: '服务器尚未安装钱包验签模块，暂不能用钱包注册/登录。',
+  CHALLENGE_EXPIRED: '签名挑战已过期或已使用，请重试。',
+  INVALID_SIGNATURE: '签名无效或钱包地址不匹配。',
+  ORIGIN_MISMATCH: '登录来源不匹配，请重新连接。',
+  RATE_LIMITED: '请求太频繁，请稍后再试。',
+  SERVER_PASSWORD_INCORRECT: '服务器密码不正确。',
+}
+
+export function WalletConnect({ serverUrl, serverPassword, onLogin }: Props) {
   const [available, setAvailable] = useState<WalletChoice[]>([])
   const [pending, setPending] = useState<WalletBrand | null>(null)
-  const [connected, setConnected] = useState<{ brand: WalletBrand; address: string; chainId: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => subscribeWallets(setAvailable), [])
-  async function connect(brand: WalletBrand) {
-    setError(null)
-    setConnected(null)
-    const choice = available.find(w => w.brand === brand)
+
+  async function post(url: string, data: unknown) {
+    const result = await fetch(`${serverUrl.replace(/\/$/, '')}/api/auth/wallet/${url}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    const json = await result.json()
+    if (!result.ok) throw new Error(messages[json.error] || json.error || '服务器认证失败')
+    return json
+  }
+
+  async function login(brand: WalletBrand) {
+    const choice = available.find(x => x.brand === brand)
     if (!choice) {
-      setError('未检测到对应钱包。电脑请安装浏览器插件；手机可在钱包内置 DApp 浏览器打开此页面。')
+      setError('未检测到该钱包。请安装扩展，或使用钱包 App 的 DApp 浏览器打开页面。')
       return
     }
+    setError(null)
     setPending(brand)
     try {
       const { address, chainId } = await connectInjectedWallet(choice)
-      setConnected({ brand, address, chainId })
+      const challenge = await post('challenge', {
+        address, chainId: parseInt(chainId, 16), serverPassword,
+      })
+      if (typeof challenge.message !== 'string' || typeof challenge.challengeId !== 'string')
+        throw new Error('服务器挑战无效')
+      // Only sign the server-issued message. No transfer, token approval or gas.
+      const signature = await choice.provider.request({
+        method: 'personal_sign', params: [challenge.message, address],
+      })
+      if (typeof signature !== 'string') throw new Error('钱包未返回有效签名')
+      const result = await post('verify', {
+        challengeId: challenge.challengeId, signature, serverPassword,
+      })
+      if (!result.token || !result.user?.username) throw new Error('登录结果无效')
+      onLogin(result.token, result.user.username, result.user)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '连接钱包失败或用户拒绝授权')
+      setError(e instanceof Error ? e.message : '钱包登录失败或用户取消签名')
     } finally {
       setPending(null)
     }
   }
-  return (
-    <section className="wallet-connect" aria-label="Web3 钱包连接">
-      <h3>连接 Web3 钱包</h3>
-      <p>支持币安钱包、OKX Wallet 与 TokenPocket（EVM 模式）。连接不需要转账或支付 Gas。</p>
-      <div className="wallet-connect-options">
-        {brands.map(brand => (
-          <button key={brand} type="button" disabled={pending !== null}
-            onClick={() => void connect(brand)}>
-            {pending === brand ? '等待钱包确认…' : walletLabels[brand]}
-            <small>{available.some(w => w.brand === brand) ? '已检测到' : '未检测到'}</small>
-          </button>
-        ))}
-      </div>
-      {error && <p className="wallet-connect-error" role="alert">{error}</p>}
-      {connected && (
-        <div className="wallet-connect-result" role="status">
-          <strong>钱包已连接（仅本次页面会话）</strong>
-          <code>{connected.address}</code>
-          <span>链 ID：{parseInt(connected.chainId, 16)}</span>
-          {connected.chainId !== '0x38' && <span>后续 TapeAPI 读取将使用 BNB Chain（56），当前仅连接钱包，不自动切链。</span>}
-        </div>
-      )}
-      <p className="wallet-connect-notice">
-        钱包连接 ≠ 注册登录。账号签名认证尚未开放；当前仍请使用上方账号密码登录。
-        不会请求助记词、私钥、代币授权或链上交易。
-      </p>
-    </section>
-  )
+
+  return <section className="wallet-connect" aria-label="钱包注册与登录">
+    <h3>钱包登录 Tape Games</h3>
+    <p>第一次签名即注册，以后使用同一个钱包签名登录；无需支付 Gas，也不需要 X 账号。</p>
+    <div className="wallet-connect-options">
+      {brands.map(brand => (
+        <button type="button" key={brand} disabled={pending !== null} onClick={() => void login(brand)}>
+          {pending === brand ? '等待签名确认…' : walletLabels[brand]}
+          <small>{available.some(w => w.brand === brand) ? '可连接' : '未检测到'}</small>
+        </button>
+      ))}
+    </div>
+    {error && <p className="wallet-connect-error" role="alert">{error}</p>}
+    <p className="wallet-connect-notice">钱包签名证明地址所有权，不会转走资产。登录后可以在「设置」里修改昵称、选择头像。不要向任何人提供私钥或助记词。</p>
+  </section>
 }
