@@ -30,6 +30,10 @@ function signatureVerifier(): Viem | null {
   } catch { return null }
 }
 
+export function walletVerifierAvailable(): boolean {
+  return signatureVerifier() !== null
+}
+
 export class WalletAuth {
   constructor(private db: Database.Database, private users: UserStore) {
     db.exec(`
