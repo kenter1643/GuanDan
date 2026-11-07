@@ -4,7 +4,7 @@
 
 **Tape Games** (Chinese: Tape 棋牌) is an extensible multiplayer card and board game platform built on the open-source [Tongzhuo](https://github.com/NFraw/Tongzhuo) codebase. It targets web/H5 mobile browsers and Electron desktop clients through a **TypeScript monorepo, server-authoritative game plugins, and Socket.IO real-time transport**.
 
-> **Status:** Active development. A merged feature is not necessarily verified in a full build or multi-device E2E test. Simplified Guandan is integrated but still needs verified four-player browser/mobile acceptance; classic Guandan remains incomplete. Binance, OKX, and TokenPocket have injected-wallet **connection UI only**, not cryptographic wallet signup/login. TapeAPI 3.0 is planned, **not integrated**.
+> **Status:** Active development. A merged feature is not necessarily verified in a full build or multi-device E2E test. Simplified Guandan is integrated but still needs verified four-player browser/mobile acceptance; classic Guandan remains incomplete. Binance, OKX, and TokenPocket have injected-wallet **connection UI only**, wallet-signature signup/login is under development but not yet verified or enabled. TapeAPI 3.0 is planned, **not integrated**.
 
 ## Games and product modules
 
@@ -19,7 +19,7 @@
 | Account/password | Existing backend | SQLite user store, scrypt password hash, HMAC login tokens |
 | Binance / OKX / TokenPocket | Connect UI implemented | EIP-6963 and injected EIP-1193 wallets; no wallet login |
 | TapeAPI 3.0 | Design only | Future signed/verified read-only service adapter |
-| Wallet registration | Not implemented | Planned EIP-4361 SIWE challenge/signature verification |
+| Wallet registration | In development, not deployed | EIP-4361 challenge and account mapping; verifier dependency and acceptance tests pending |
 
 ## Technology stack
 
@@ -110,7 +110,7 @@ The project cannot be called production-ready until `npm ci`, `npm run test`, an
 
 ## Wallet connection, registration and TapeAPI 3.0
 
-The three wallet buttons connect to injected EVM providers. Some mobile environments require the wallet's in-app DApp browser; WalletConnect/deep-link support for ordinary mobile browsers is not yet implemented. **Connecting an address is not an authenticated login.** Password-based accounts remain the available login flow.
+The three wallet buttons connect to injected EVM providers. Some mobile environments require the wallet's in-app DApp browser; WalletConnect/deep-link support for ordinary mobile browsers is not yet implemented. **Connecting an address is not an authenticated login. Verified signature signup is under development and is not available until the server verifier is installed and tested.** Password-based accounts remain the available login flow.
 
 Secure wallet signup will require server-issued, short-lived, single-use EIP-4361 (SIWE) challenges; verified signatures, origin/domain/chain/address matching; and atomic SQLite account binding. Never ask for seed phrases, private keys, token approvals, or payments for login.
 

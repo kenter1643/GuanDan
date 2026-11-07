@@ -148,12 +148,12 @@ export function SettingsPage({ serverUrl, token, user, onBack, onProfileUpdate, 
           >
             个人资料
           </button>
-          <button
+          {!user.username.startsWith('w_') && <button
             className={`settings-tab ${activeTab === 'password' ? 'active' : ''}`}
             onClick={() => setActiveTab('password')}
           >
             修改密码
-          </button>
+          </button>}
         </div>
 
         {error && <div className="settings-error">{error}</div>}
@@ -210,7 +210,7 @@ export function SettingsPage({ serverUrl, token, user, onBack, onProfileUpdate, 
           </div>
         )}
 
-        {activeTab === 'password' && (
+        {activeTab === 'password' && !user.username.startsWith('w_') && (
           <div className="settings-section">
             <div className="settings-field">
               <label>原密码</label>
