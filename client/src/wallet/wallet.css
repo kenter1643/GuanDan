@@ -1,0 +1,12 @@
+.wallet-connect{margin-top:22px;padding:16px;border:1px solid #ced7df;border-radius:12px;text-align:left;color:inherit;max-width:100%;overflow-wrap:anywhere}
+.wallet-connect h3{margin:0 0 8px;font-size:17px}
+.wallet-connect p{font-size:13px;line-height:1.5}
+.wallet-connect-options{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.wallet-connect-options button{padding:12px;text-align:left;border-radius:8px;border:1px solid #a4b4c2;background:#f0f5f9;color:#142f42;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.wallet-connect-options button:disabled{opacity:.55;cursor:wait}
+.wallet-connect-options small{font-weight:400;font-size:11px;white-space:nowrap}
+.wallet-connect-error{color:#b02831}
+.wallet-connect-result{display:flex;flex-direction:column;gap:5px;padding:10px;background:#edf7ee;border-radius:8px;color:#174529}
+.wallet-connect-result code{font-size:12px;overflow-wrap:anywhere}
+.wallet-connect-notice{opacity:.76}
+@media(max-width:480px){.wallet-connect{padding:12px}.wallet-connect-options button{padding:10px;font-size:13px}}
