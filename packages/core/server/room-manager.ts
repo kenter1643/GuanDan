@@ -174,6 +174,9 @@ export class RoomManager {
 
   setPlayerName(playerId: string, name: string): void {
     this.playerNames.set(playerId, name)
+    const room = this.findRoomByPlayer(playerId)
+    const player = room?.players.find(p => p.id === playerId)
+    if (player) player.name = name
   }
 
   getPlayerName(playerId: string): string {
