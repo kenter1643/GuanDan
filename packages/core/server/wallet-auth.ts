@@ -51,7 +51,7 @@ export class WalletAuth {
 
   challenge(address: unknown, chainId: unknown, origin: unknown) {
     if (typeof address !== 'string' || !ADDRESS_RE.test(address) ||
-        !Number.isSafeInteger(chainId) || (chainId as number) < 1 ||
+        (typeof chainId !== 'number' || !Number.isSafeInteger(chainId) || chainId < 1) ||
         typeof origin !== 'string') throw new Error('INVALID_WALLET_PARAMS')
     let url: URL
     try { url = new URL(origin) } catch { throw new Error('INVALID_ORIGIN') }
