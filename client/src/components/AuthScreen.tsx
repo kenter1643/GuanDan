@@ -169,7 +169,7 @@ export function AuthScreen({ serverUrl, onAuthSuccess, onBack }: AuthScreenProps
           </button>
         </form>
 
-        <WalletConnect />
+        <WalletConnect serverUrl={serverUrl} serverPassword={serverPassword} onLogin={onAuthSuccess} />
 
         <div className="auth-footer">
           <button
