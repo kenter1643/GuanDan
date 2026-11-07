@@ -8,6 +8,7 @@ import { PluginLoader } from './plugin-loader'
 import { setupSocketFramework } from './socket-framework'
 import { getDb } from './db'
 import { UserStore } from './user-store'
+import { WalletAuth } from './wallet-auth'
 import { ServerConfig } from './server-config'
 import { AuthErrors, AuthValidation } from '@tongzhuo/core-shared'
 import type { GameServerPlugin } from '@tongzhuo/core-shared'
@@ -82,6 +83,7 @@ export async function startServer(options: ServerOptions = {}): Promise<ServerHa
   const db = getDb(dataDir)
   const serverConfig = new ServerConfig(dataDir)
   const userStore = new UserStore(db, serverConfig.getServerSecret())
+  const walletAuth = new WalletAuth(db, userStore)
   const authRateLimiter = new RateLimiter()
 
   // --- Auth REST endpoints ---
@@ -91,6 +93,46 @@ export async function startServer(options: ServerOptions = {}): Promise<ServerHa
     res.json({
       requirePassword: serverConfig.requirePassword(),
     })
+  })
+
+  // Wallet sign-in is EIP-4361/EIP-191 signed and free of on-chain transactions.
+  // Connection/claimed address alone never authenticates a user.
+  apiRouter.post('/auth/wallet/challenge', (req, res) => {
+    const ip = req.ip || 'unknown'
+    if (!authRateLimiter.check(`wallet-challenge:${ip}`, 10, 60000)) {
+      res.status(429).json({ error: 'RATE_LIMITED' }); return
+    }
+    if (serverConfig.requirePassword() &&
+        (typeof req.body?.serverPassword !== 'string' ||
+          !serverConfig.verifyServerPassword(req.body.serverPassword))) {
+      res.status(403).json({ error: AuthErrors.SERVER_PASSWORD_INCORRECT }); return
+    }
+    try {
+      const challenge = walletAuth.challenge(req.body?.address, req.body?.chainId, req.headers.origin)
+      res.json(challenge)
+    } catch (e) {
+      res.status(400).json({ error: e instanceof Error ? e.message : 'INVALID_REQUEST' })
+    }
+  })
+
+  apiRouter.post('/auth/wallet/verify', async (req, res) => {
+    const ip = req.ip || 'unknown'
+    if (!authRateLimiter.check(`wallet-verify:${ip}`, 10, 60000)) {
+      res.status(429).json({ error: 'RATE_LIMITED' }); return
+    }
+    if (serverConfig.requirePassword() &&
+        (typeof req.body?.serverPassword !== 'string' ||
+          !serverConfig.verifyServerPassword(req.body.serverPassword))) {
+      res.status(403).json({ error: AuthErrors.SERVER_PASSWORD_INCORRECT }); return
+    }
+    try {
+      const result = await walletAuth.verify(req.body?.challengeId, req.body?.signature, req.headers.origin)
+      res.json(result)
+    } catch (e) {
+      const code = e instanceof Error ? e.message : 'WALLET_AUTH_FAILED'
+      res.status(code === 'WALLET_VERIFIER_UNAVAILABLE' ? 503 : 401)
+        .json({ error: code })
+    }
   })
 
   // Register
