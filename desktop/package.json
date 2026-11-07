@@ -1,7 +1,7 @@
 {
   "name": "tongzhuo-desktop",
   "version": "2.0.0",
-  "description": "Tongzhuo - open-source online multiplayer game platform (desktop client)",
+  "description": "Tape Games - multiplayer card and board games (desktop client)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

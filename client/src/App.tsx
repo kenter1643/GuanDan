@@ -593,7 +593,7 @@ function AppInner() {
   if (phase === 'connect') {
     return (
       <div className="lobby">
-        <h1>Tongzhuo</h1>
+        <h1>Tape Games</h1>
         <p className="lobby-subtitle">派对 · 纸牌 · 棋盘 · 社交游戏</p>
         <div className="connect-panel">
           <h2>连接服务器</h2>
@@ -651,7 +651,7 @@ function AppInner() {
     return (
       <div className="lobby">
         <div className="lobby-header">
-          <h1>Tongzhuo</h1>
+          <h1>Tape Games</h1>
           {auth.user && (
             <div className="lobby-user-bar">
               <LobbyAvatar id={auth.user.avatarId} size={28} />
